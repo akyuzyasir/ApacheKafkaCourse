@@ -1,0 +1,13 @@
+﻿namespace KafkaComponents;
+
+public class Broker
+{
+    // Broker
+    /*
+        Kafka partitions and sharding
+            - Sharding is the process of splitting data into multiple partitions to distribute the load across multiple brokers. Eachpartition is replicated across multiple brokers to ensure fault tolerance and high availability. Kafka uses a partitioning strategy to determine which partition a message should be written to based on the message key or a custom partitioner. The number of partitions in a topic determines the maximum parallelism and throughput of the topic. You can increase the number of partitions to scale out the topic and improve performance. However, increasing the number of partitions also increases the complexity of managing the topic and may affect the order of messages within a partition.
+            - Kafka uses a leader-follower replication model to replicate partitions across brokers. Each partition has one leader and multiple followers. The leader is responsible for handling read and write requests for the partition, while the followers replicate the data from the leader to stay in sync. If the leader fails, one of the followers is elected as the new leader to ensure continuity of service. Kafka uses a consensus protocol called the Apache ZooKeeper to manage the leader election process and maintain the metadata of the cluster.
+            - Topics have a replication factor that determines the number of replicas for each partition. The replication factor specifies how many copies of each partition should be maintained across brokers. A replication factor of 1 means that each partition has only one replica, which is not fault-tolerant. A replication factor of 2 means that each partition has one leader and one follower, which provides fault tolerance but no redundancy. A replication factor of 3 means that each partition has one leader and two followers, which provides fault tolerance and redundancy. You can increase the replication factor to improve fault tolerance and durability at the cost of increased storage and network overhead.
+            - Producers publish messages to Kafka topics by specifying the topic name and message key. The message key is used to determine the partition to which the message should be written. Kafka uses a partitioning strategy to hash the message key and assign it to a partition based on the hash value. If the message key is null, Kafka uses a round-robin strategy to distribute messages across partitions. Producers can also specify a custom partitioner to determine the partition for a message based on custom logic. The partitioning strategy affects the distribution of messages across brokers and the order of messages within a partition. 
+     */
+}
