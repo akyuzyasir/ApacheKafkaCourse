@@ -20,12 +20,23 @@ namespace Kafka.Producer
 
             try
             {
-                await adminClient.CreateTopicsAsync(new[]
-                {
-                    new TopicSpecification(){ Name= topicName, NumPartitions = 3, ReplicationFactor = 1 }
-                }); // 3 partitions and 1 replication factor for the topic
+                var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(10));
 
-                Console.WriteLine($"Topic({topicName}) is created.");
+                var topicExists = metadata.Topics.Any(m => m.Topic == topicName);
+
+                if (!topicExists)
+                {
+                    await adminClient.CreateTopicsAsync(new[]
+                    {
+                        new TopicSpecification(){ Name= topicName, NumPartitions = 3, ReplicationFactor = 1 }
+                    }); // 3 partitions and 1 replication factor for the topic
+                    Console.WriteLine($"Topic({topicName}) is created.");
+                }
+                else
+                {
+                    Console.WriteLine($"Topic({topicName}) already exists.");
+                }
+
             }
             catch (Exception e)
             {
@@ -41,7 +52,7 @@ namespace Kafka.Producer
 
             using var producer = new ProducerBuilder<Null, string>(config).Build();
 
-            foreach (var item in Enumerable.Range(1, 10))
+            foreach (var item in Enumerable.Range(1, 100))
             {
                 var message = new Message<Null, string>()
                 {
