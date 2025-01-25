@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kafka.Producer
 {
-    internal class KafkaService
+    internal class KafkaProducerService
     {
         internal async Task CreateTopicAsync(string topicName)
         {
@@ -52,7 +52,7 @@ namespace Kafka.Producer
 
             using var producer = new ProducerBuilder<Null, string>(config).Build();
 
-            foreach (var item in Enumerable.Range(1, 100))
+            foreach (var item in Enumerable.Range(1, 10))
             {
                 var message = new Message<Null, string>()
                 {
