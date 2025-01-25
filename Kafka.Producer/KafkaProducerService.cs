@@ -108,6 +108,7 @@ namespace Kafka.Producer
                 BootstrapServers = "localhost:9094"
             };
 
+            // We use the CustomValueSerializer class to serialize the OrderCreatedEvent object. We use the SetValueSerializer method to set the serializer for the value of the message.
             using var producer = new ProducerBuilder<int, OrderCreatedEvent>(config)
                 .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
                 .Build();
@@ -116,7 +117,7 @@ namespace Kafka.Producer
             {
                 // once we created a record object, we cannot change its properties. It is immutable. That is why we use the "with" keyword to create a new object with the new values that has different reference on the memory from the original object.
                 var orderCreatedEvent = new OrderCreatedEvent()
-                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200};
+                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200, UserId=item};
 
 
                 var message = new Message<int, OrderCreatedEvent>()
