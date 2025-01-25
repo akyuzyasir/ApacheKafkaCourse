@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kafka.Producer.Events;
 
 namespace Kafka.Producer
 {
@@ -100,5 +101,42 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
+        internal async Task SendComplexMessageWithIntKey(string topicName)
+        {
+            var config = new ProducerConfig()
+            {
+                BootstrapServers = "localhost:9094"
+            };
+
+            // We use the CustomValueSerializer class to serialize the OrderCreatedEvent object. We use the SetValueSerializer method to set the serializer for the value of the message.
+            using var producer = new ProducerBuilder<int, OrderCreatedEvent>(config)
+                .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
+                .Build();
+
+            foreach (var item in Enumerable.Range(1, 100))
+            {
+                // once we created a record object, we cannot change its properties. It is immutable. That is why we use the "with" keyword to create a new object with the new values that has different reference on the memory from the original object.
+                var orderCreatedEvent = new OrderCreatedEvent()
+                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200, UserId=item};
+
+
+                var message = new Message<int, OrderCreatedEvent>()
+                {
+                    Value = orderCreatedEvent,
+                    Key = item
+                };
+
+                var result = await producer.ProduceAsync(topicName, message);
+
+                foreach (var propertyInfo in result.GetType().GetProperties())
+                {
+                    Console.WriteLine($"{propertyInfo.Name} : {propertyInfo.GetValue(result)}");
+                }
+
+                Console.WriteLine("---------------------------------");
+                await Task.Delay(10);
+            }
+        }
+
     }
 }
