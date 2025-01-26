@@ -9,7 +9,7 @@ try
     var kafkaService = new KafkaConsumerService();
 
     // we have 3 partitions and 1 replication factor for the topic. So, we can run 3 consumers at the same time and each consumer will consume messages from a different partition. But if we run more than 3 consumers, some of them will be idle because we have only 3 partitions.
-    await kafkaService.ConsumeComplexMessageWithIntKey(topicName);
+    await kafkaService.ConsumeComplexMessageWithIntKeyAndHeader(topicName);
 }
 catch (ArgumentException ex)
 {
