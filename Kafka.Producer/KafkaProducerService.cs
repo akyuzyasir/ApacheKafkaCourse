@@ -26,11 +26,16 @@ namespace Kafka.Producer
 
                 var topicExists = metadata.Topics.Any(m => m.Topic == topicName);
 
+                // We can set the configuration for the topic. In this example, we set the message.timestamp.type to LogAppendTime. LogAppendTime is the time when the message is appended to the log.
+                var configs = new Dictionary<string, string>()
+                {
+                    {"message.timestamp.type", "LogAppendTime" }
+                };
                 if (!topicExists)
                 {
                     await adminClient.CreateTopicsAsync(new[]
                     {
-                        new TopicSpecification(){ Name= topicName, NumPartitions = 3, ReplicationFactor = 1 }
+                        new TopicSpecification(){ Name= topicName, NumPartitions = 3, ReplicationFactor = 1, Configs = configs}
                     }); // 3 partitions and 1 replication factor for the topic
                     Console.WriteLine($"Topic({topicName}) is created.");
                 }
@@ -173,7 +178,6 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
-
         internal async Task SendComplexMessageWithIntKeyAndHeader(string topicName)
         {
             var config = new ProducerConfig()
@@ -216,6 +220,46 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
+        internal async Task SendMessageWithTimestamp(string topicName)
+        {
+            var config = new ProducerConfig()
+            {
+                BootstrapServers = "localhost:9094"
+            };
+
+            // We use the CustomValueSerializer class to serialize the OrderCreatedEvent object. We use the SetValueSerializer method to set the serializer for the value of the message.
+            using var producer = new ProducerBuilder<MessageKey, OrderCreatedEvent>(config)
+                .SetValueSerializer(new CustomValueSerializer<OrderCreatedEvent>())
+                .SetKeySerializer(new CustomKeySerializer<MessageKey>())
+                .Build();
+
+            foreach (var item in Enumerable.Range(1, 3))
+            {
+                // once we created a record object, we cannot change its properties. It is immutable. That is why we use the "with" keyword to create a new object with the new values that has different reference on the memory from the original object.
+                var orderCreatedEvent = new OrderCreatedEvent()
+                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200, UserId = item };
+
+
+                var message = new Message<MessageKey, OrderCreatedEvent>()
+                {
+                    Value = orderCreatedEvent,
+                    Key = new MessageKey("key1 value", "key2 value"),
+                    // We can set the timestamp of the message . If we don't set it, Kafka will set it automatically.
+                    //Timestamp = new Timestamp(new DateTime(2012, 02, 02)) 
+                };
+
+                var result = await producer.ProduceAsync(topicName, message);
+
+                foreach (var propertyInfo in result.GetType().GetProperties())
+                {
+                    Console.WriteLine($"{propertyInfo.Name} : {propertyInfo.GetValue(result)}");
+                }
+
+                Console.WriteLine("---------------------------------");
+                await Task.Delay(10);
+            }
+        }
+
 
     }
 }
