@@ -27,15 +27,11 @@ namespace Kafka.Producer
                 var topicExists = metadata.Topics.Any(m => m.Topic == topicName);
 
                 // We can set the configuration for the topic. In this example, we set the message.timestamp.type to LogAppendTime. LogAppendTime is the time when the message is appended to the log.
-                var configs = new Dictionary<string, string>()
-                {
-                    {"message.timestamp.type", "LogAppendTime" }
-                };
                 if (!topicExists)
                 {
                     await adminClient.CreateTopicsAsync(new[]
                     {
-                        new TopicSpecification(){ Name= topicName, NumPartitions = 3, ReplicationFactor = 1, Configs = configs}
+                        new TopicSpecification(){ Name= topicName, NumPartitions = 6, ReplicationFactor = 1}
                     }); // 3 partitions and 1 replication factor for the topic
                     Console.WriteLine($"Topic({topicName}) is created.");
                 }
@@ -259,6 +255,37 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
+        internal async Task SendMessageToSpecifiedPartition(string topicName)
+        {
+            var config = new ProducerConfig()
+            {
+                BootstrapServers = "localhost:9094"
+            };
+
+            // We use the CustomValueSerializer class to serialize the OrderCreatedEvent object. We use the SetValueSerializer method to set the serializer for the value of the message.
+            using var producer = new ProducerBuilder<Null, string>(config).Build();
+
+            foreach (var item in Enumerable.Range(1, 10))
+            {
+                var message = new Message<Null,string>{ Value= $"Message {item}" };
+
+
+                // We can send the message to the specified partion. In this example, we send the message to the partition 4.
+                var topicPartition = new TopicPartition(topicName, new Partition(4));
+
+                var result = await producer.ProduceAsync(topicPartition, message);
+
+                foreach (var propertyInfo in result.GetType().GetProperties())
+                {
+                    Console.WriteLine($"{propertyInfo.Name} : {propertyInfo.GetValue(result)}");
+                }
+
+                Console.WriteLine("---------------------------------");
+                await Task.Delay(10);
+            }
+        }
+
+
 
 
     }

@@ -7,9 +7,9 @@ Console.WriteLine("Kafka Producer");
 
 
 var kafkaService = new KafkaProducerService();
-var topicName = "use-case-3-topic";
+var topicName = "use-case-4-topic";
 await kafkaService.CreateTopicAsync(topicName);
-await kafkaService.SendMessageWithTimestamp(topicName);
+await kafkaService.SendMessageToSpecifiedPartition(topicName);
 
 Console.WriteLine("Messages are sent to the Kafka server.");
 
