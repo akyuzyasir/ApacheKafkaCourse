@@ -7,7 +7,7 @@ Console.WriteLine("Kafka Producer");
 
 
 var kafkaService = new KafkaProducerService();
-var topicName = "use-case-4-topic";
+var topicName = "use-case-5-topic";
 await kafkaService.CreateTopicAsync(topicName);
 await kafkaService.SendMessageToSpecifiedPartition(topicName);
 
