@@ -117,7 +117,7 @@ namespace Kafka.Producer
             {
                 // once we created a record object, we cannot change its properties. It is immutable. That is why we use the "with" keyword to create a new object with the new values that has different reference on the memory from the original object.
                 var orderCreatedEvent = new OrderCreatedEvent()
-                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200, UserId=item};
+                { OrderCode = Guid.NewGuid().ToString(), TotalPrice = item * 200, UserId = item };
 
 
                 var message = new Message<int, OrderCreatedEvent>()
@@ -267,7 +267,7 @@ namespace Kafka.Producer
 
             foreach (var item in Enumerable.Range(1, 10))
             {
-                var message = new Message<Null,string>{ Value= $"Message {item}" };
+                var message = new Message<Null, string> { Value = $"Message {item}" };
 
 
                 // We can send the message to the specified partion. In this example, we send the message to the partition 4.
@@ -284,6 +284,36 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
+        internal async Task SendMessageWithAck(string topicName)
+        {
+            // Acknowledgement is used to confirm that the message is received by the broker. We can set the Acknowledgement type in the ProducerConfig. There are 3 types of Acknowledgement: None, Leader and All. All means that the message is received by all replicas. Leader means that the message is received by the leader replice. None means that the message is not received by any replica. None is low latency option but it is not reliable. All is the most reliable option but it is slow. Leader is the middle option between None and All. 
+            // We should set the Acknowledgement type to All in such cases like financial transactions, orders, etc. 
+            // We can set it to Leader in such cases like logging, monitoring, sending notifications or Welcome emails, etc.
+            // We can set it to None in such cases like sending telemetry data etc.
+            var config = new ProducerConfig() { BootstrapServers = "localhost:9094", Acks = Acks.All };
+
+            using var producer = new ProducerBuilder<Null, string>(config).Build();
+
+            foreach (var item in Enumerable.Range(1, 10))
+            {
+                var message = new Message<Null, string> { Value = $"Message {item}" };
+
+
+                // We can send the message to the specified partion. In this example, we send the message to the partition 4.
+                var topicPartition = new TopicPartition(topicName, new Partition(4));
+
+                var result = await producer.ProduceAsync(topicName, message);
+
+                foreach (var propertyInfo in result.GetType().GetProperties())
+                {
+                    Console.WriteLine($"{propertyInfo.Name} : {propertyInfo.GetValue(result)}");
+                }
+
+                Console.WriteLine("---------------------------------");
+                await Task.Delay(10);
+            }
+        }
+
 
 
 
