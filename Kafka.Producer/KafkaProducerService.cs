@@ -46,6 +46,55 @@ namespace Kafka.Producer
                 Console.WriteLine(e.Message);
             }
         }
+        internal async Task CreateTopicWithRetentionAsync(string topicName)
+        {
+            // we use using to dispose the resources after the task is done
+            using var adminClient = new AdminClientBuilder(new AdminClientConfig()
+            {
+                BootstrapServers = "localhost:9094" // This code is for local Kafka. 
+            }).Build();
+
+            try
+            {
+                var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(10));
+
+                var topicExists = metadata.Topics.Any(m => m.Topic == topicName);
+
+                // We can set the configuration for the topic. In this example, we set the message.timestamp.type to LogAppendTime. LogAppendTime is the time when the message is appended to the log.
+                if (!topicExists)
+                {
+                    TimeSpan retentionSpan = TimeSpan.FromDays(30);
+
+                    var configs = new Dictionary<string, string>()
+                    {
+                        //{"retention.byte", "1024" } // each partition will keep 1KB of messages.
+                        //{"retention.ms","-1" } // -1 means that the messages will be kept forever.
+                        {"retention.ms", retentionSpan.TotalMilliseconds.ToString()} // 30 days
+                    };
+
+                    await adminClient.CreateTopicsAsync(new[]
+                    {
+                        new TopicSpecification()
+                        { 
+                            Name= topicName, 
+                            NumPartitions = 6, 
+                            ReplicationFactor = 1,
+                            Configs= configs
+                        }
+                    }); // 6 partitions and 1 replication factor for the topic
+                    Console.WriteLine($"Topic({topicName}) is created.");
+                }
+                else
+                {
+                    Console.WriteLine($"Topic({topicName}) already exists.");
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
         internal async Task SendSimpleMessageWithNullKey(string topicName)
         {
             var config = new ProducerConfig()
