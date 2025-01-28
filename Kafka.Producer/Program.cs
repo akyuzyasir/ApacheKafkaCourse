@@ -7,8 +7,8 @@ Console.WriteLine("Kafka Producer");
 
 
 var kafkaService = new KafkaProducerService();
-var topicName = "ack-topic";
-await kafkaService.CreateTopicAsync(topicName);
+var topicName = "retention-topic";
+await kafkaService.CreateTopicWithRetentionAsync(topicName);
 await kafkaService.SendMessageWithAck(topicName);
 
 Console.WriteLine("Messages are sent to the Kafka server.");
