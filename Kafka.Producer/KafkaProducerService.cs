@@ -95,6 +95,41 @@ namespace Kafka.Producer
                 Console.WriteLine(e.Message);
             }
         }
+        internal async Task CreateTopicWithClusterAsync(string topicName)
+        {
+            // we use using to dispose the resources after the task is done
+            using var adminClient = new AdminClientBuilder(new AdminClientConfig()
+            {
+                BootstrapServers = "localhost:7000,localhost:7001,localhost:7002" // This code is for local Kafka. 
+            }).Build();
+
+            try
+            {
+                var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(10));
+
+                var topicExists = metadata.Topics.Any(m => m.Topic == topicName);
+
+                // We can set the configuration for the topic. In this example, we set the message.timestamp.type to LogAppendTime. LogAppendTime is the time when the message is appended to the log.
+                if (!topicExists)
+                {
+                    await adminClient.CreateTopicsAsync(new[]
+                    {
+                        new TopicSpecification(){ Name= topicName, NumPartitions = 6, ReplicationFactor = 3}
+                    }); // 3 partitions and 1 replication factor for the topic
+                    Console.WriteLine($"Topic({topicName}) is created.");
+                }
+                else
+                {
+                    Console.WriteLine($"Topic({topicName}) already exists.");
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
         internal async Task SendSimpleMessageWithNullKey(string topicName)
         {
             var config = new ProducerConfig()
@@ -362,6 +397,30 @@ namespace Kafka.Producer
                 await Task.Delay(10);
             }
         }
+        internal async Task SendMessageToCluster(string topicName)
+        {
+
+            var config = new ProducerConfig() { BootstrapServers = "localhost:7000,localhost:7001,localhost:7002", Acks = Acks.All };
+
+            
+            using var producer = new ProducerBuilder<Null, string>(config).Build();
+
+            foreach (var item in Enumerable.Range(1, 20))
+            {
+                var message = new Message<Null, string> { Value = $"Message {item}" };
+
+                var result = await producer.ProduceAsync(topicName, message);
+
+                foreach (var propertyInfo in result.GetType().GetProperties())
+                {
+                    Console.WriteLine($"{propertyInfo.Name} : {propertyInfo.GetValue(result)}");
+                }
+
+                Console.WriteLine("---------------------------------");
+                await Task.Delay(10);
+            }
+        }
+
 
 
 
