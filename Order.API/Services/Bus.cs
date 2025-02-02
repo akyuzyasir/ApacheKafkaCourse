@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Shared.Events;
+using Shared.Events.SerializersAndDesirializers;
 
 namespace Order.API.Services;
 // This class is responsible for sending messages to the Kafka bus and creating topics or queues.

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Shared.Events;
+using System.Runtime.CompilerServices;
 
 namespace Order.API.Services
 {

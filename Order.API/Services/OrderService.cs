@@ -1,4 +1,5 @@
-﻿using Shared.Events.Events;
+﻿using Shared.Events;
+using Shared.Events.Events;
 
 namespace Order.API.Services;
 
